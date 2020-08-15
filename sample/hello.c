@@ -10,11 +10,11 @@ void error_at(char *fmt, ...) {
   exit(1);
 }
 
-
+// コメント行
 int main(int argc, char* argv[])
 {
-  printf("hello %d\n", argc);
-  printf("%s\n", argv[0]);
+  /*  printf("hello %d\n", argc);
+      printf("%s\n", argv[0]);*/
 
   char *filename = argv[1];
   FILE* fp = fopen(filename, "r");

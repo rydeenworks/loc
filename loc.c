@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
+#include <stdbool.h>
 
 void error_at(char *fmt, ...) {
   va_list ap;
@@ -31,13 +33,25 @@ int main(int argc, char* argv[])
 
   int line = 0;
   int empty_line = 0;
-  for(size_t i=0; i<size; i++){
-    if (buf[i] == '\n') {
-      line++;
-      if (i < size - 2 && buf[i+1] == '\n') {
-        empty_line++;
+  bool is_new_line = false; // 連続した改行を判定するためのフラグ
+  for (size_t i = 0; i < size; i++) {
+    // 空白のみの行は空行とする(行頭の空白は常に無視する)
+    // 改行は'\n'
+    // コメントのみの行をコメント行として計測する
+    // 1行コメント "//"
+    // 範囲コメント "/* ... */"
+    if(isspace(buf[i])) {
+      // ファイル全行数の計測
+      if (buf[i] == '\n') {
+        line++;
+        if (is_new_line)
+          empty_line++;
+        is_new_line = true;
       }
+      // 空白を全て無視して処理しない('\n'除く)
+      continue;
     }
+    is_new_line = false;
   }
   free(buf);
 
