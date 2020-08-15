@@ -10,12 +10,8 @@ void error_at(char *fmt, ...) {
   exit(1);
 }
 
-
 int main(int argc, char* argv[])
 {
-  printf("hello %d\n", argc);
-  printf("%s\n", argv[0]);
-
   char *filename = argv[1];
   FILE* fp = fopen(filename, "r");
   if (fp == NULL)
@@ -34,12 +30,17 @@ int main(int argc, char* argv[])
   fread(buf, size, 1, fp);
 
   int line = 0;
+  int empty_line = 0;
   for(size_t i=0; i<size; i++){
-    if (buf[i] == '\n') line++;
+    if (buf[i] == '\n') {
+      line++;
+      if (i < size - 2 && buf[i+1] == '\n') {
+        empty_line++;
+      }
+    }
   }
-
   free(buf);
-  printf("line:%d\n", line);
 
+  printf("line:%d empty:%d\n", line, empty_line);
   return line;
 }
