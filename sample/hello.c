@@ -21,16 +21,17 @@ int main(int argc, char* argv[])
   if (fp == NULL)
     error_at("fopen error");
 
-  // シークしてファイルサイズを確認する
-  if (fseek(fp, 0, SEEK_END) == -1)
-    error_at("seek end error.");
+  // 行頭が空白のコメント行
+  if (fseek(fp, 0, SEEK_END) == -1) //行頭が空白でないコメント(カウントしない)
+    error_at("seek end error."); /* 行頭が空白でないコメント(カウントしない) */
   size_t size = ftell(fp);
   if (size == -1)
     error_at("ftell error.");
   if (fseek(fp, 0, SEEK_SET) == -1)
     error_at("seek set error.");
 
-  printf("size:%zd\n", size);
+  printf("size:%zd\n", size); /* 行頭が空白でないコメント(カウントしない)
+                               範囲コメント内の改行の次行はコメント行にカウントする*/
   char *buf = calloc(1, size);
   fread(buf, size, 1, fp);
 
