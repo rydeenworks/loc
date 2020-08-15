@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
   if (fp == NULL)
     error_at("fopen error");
 
+  // シークしてファイルサイズを確認する
   if (fseek(fp, 0, SEEK_END) == -1)
     error_at("seek end error.");
   size_t size = ftell(fp);

@@ -15,6 +15,6 @@ assert() {
     fi
 }
 
-assert 46 "./sample/hello.c"
+assert 47 "./sample/hello.c"
 
 echo OK

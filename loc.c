@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <string.h>
 
 void error_at(char *fmt, ...) {
   va_list ap;
@@ -33,16 +34,20 @@ int main(int argc, char* argv[])
 
   int line = 0;
   int empty_line = 0;
+  int comment_line = 0;
   bool is_new_line = false; // 連続した改行を判定するためのフラグ
-  for (size_t i = 0; i < size; i++) {
+  char *c = buf;
+  for (size_t i = 0; i < size; i++, c++) {
     // 空白のみの行は空行とする(行頭の空白は常に無視する)
     // 改行は'\n'
     // コメントのみの行をコメント行として計測する
     // 1行コメント "//"
     // 範囲コメント "/* ... */"
-    if(isspace(buf[i])) {
+    // 範囲コメント内の１行コメントは無視する
+    // １行コメント後の範囲コメントは無視する
+    if(isspace(*c)) {
       // ファイル全行数の計測
-      if (buf[i] == '\n') {
+      if (*c == '\n') {
         line++;
         if (is_new_line)
           empty_line++;
@@ -51,10 +56,14 @@ int main(int argc, char* argv[])
       // 空白を全て無視して処理しない('\n'除く)
       continue;
     }
+
+    if (strncmp("//", c, 2) == 0) {
+      comment_line++;
+    }
     is_new_line = false;
   }
   free(buf);
 
-  printf("line:%d empty:%d\n", line, empty_line);
+  printf("line:%d empty:%d comment:%d\n", line, empty_line, comment_line);
   return line;
 }
