@@ -22,6 +22,7 @@ CommentToken *tokenize(char *buf, size_t size) {
   head.prev = NULL;
   CommentToken *cur = &head;
 
+  bool is_inside_d_quote = false;  //"xxx"の間はtrue
   char *c = buf;
   for (size_t i = 0; i < size; i++, c++) {
     switch(cur->kind) {
@@ -37,22 +38,36 @@ CommentToken *tokenize(char *buf, size_t size) {
           //nop
         }
       } else {
-        if (strncmp("//", c, 2) == 0) {
-          cur = new_token(TK_LINE_COMMENT, cur);
-          c++; i++;
-        } else if (strncmp("/*", c, 2) == 0) {
-          cur = new_token(TK_START_COMMENT, cur);
-          c++; i++;
-        } else if (strncmp("*/", c, 2) == 0) {
-          cur = new_token(TK_END_COMMENT, cur);
-          c++; i++;
+        if (!is_inside_d_quote) {
+          if (*c == '\'') { // シングルクォーテーションは1文字スキップして簡易的にダブルクォーテーションを無視する
+            c++; i++;
+          } else if (*c == '"') {
+            is_inside_d_quote = true;
+          } else if (strncmp("//", c, 2) == 0) {
+            cur = new_token(TK_LINE_COMMENT, cur);
+            c++; i++;
+          } else if (strncmp("/*", c, 2) == 0) {
+            cur = new_token(TK_START_COMMENT, cur);
+            c++; i++;
+          } else if (strncmp("*/", c, 2) == 0) {
+            cur = new_token(TK_END_COMMENT, cur);
+            c++; i++;
+          } else {
+            if (cur->kind != TK_OTHRE)
+              cur = new_token(TK_OTHRE, cur);
+          }
         } else {
-          if (cur->kind != TK_OTHRE)
-            cur = new_token(TK_OTHRE, cur);
+          if (*c == '"') {
+            is_inside_d_quote = false;
+          }
         }
       }
       break;
     case TK_LINE_COMMENT:
+      if (*c == '\n') {
+        cur = new_token(TK_NEW_LINE, cur);
+      }
+      break;
     case TK_START_COMMENT:
       if (*c == '\n') {
         cur = new_token(TK_NEW_LINE, cur);
