@@ -1,26 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+#include "loc.h"
 
-// コメント解析トークン型
-typedef enum {
-              TK_NEW_LINE,      // 改行
-              TK_LINE_COMMENT,  // １行コメント
-              TK_START_COMMENT, // 範囲コメント開始
-              TK_END_COMMENT,   // 範囲コメント終了
-              TK_OTHRE,         // 上記以外
-}TokenKind;
-
-typedef struct CommentToken CommentToken;
-
-struct CommentToken{
-  TokenKind kind;
-  CommentToken *next;
-  CommentToken *prev;
-};
 
 CommentToken *new_token(TokenKind kind, CommentToken* cur) {
   CommentToken *tok = calloc(1, sizeof(CommentToken));
@@ -147,52 +131,3 @@ void count(CommentToken *tok, int *l, int *b, int *c) {
   *c = comment;
 }
 
-
-void error_at(char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
-  exit(1);
-}
-
-// 8bitで 空行 コメント行 コード行 を表現する(シェルの$?で取得するため)
-// 表現可能な行数は以下の通り
-// blank  : 2bit(0-3)
-// comment: 3bit(0-7)
-// Code   : 3bit(0-7)
-// 87654321
-// bbcccCCC
-
-int main(int argc, char* argv[])
-{
-  char *filename = argv[1];
-  FILE* fp = fopen(filename, "r");
-  if (fp == NULL)
-    error_at("fopen error");
-
-  if (fseek(fp, 0, SEEK_END) == -1)
-    error_at("seek end error.");
-  size_t size = ftell(fp);
-  if (size == -1)
-    error_at("ftell error.");
-  if (fseek(fp, 0, SEEK_SET) == -1)
-    error_at("seek set error.");
-
-  char *buf = calloc(1, size);
-  fread(buf, size, 1, fp);
-
-  int line = 0;
-  int blank_line = 0;
-  int comment_line = 0;
-
-  CommentToken *tok = tokenize(buf, size);
-  count(tok, &line, &blank_line, &comment_line);
-
-  free(buf);
-
-  int code = line - blank_line - comment_line;
-  int ret = (blank_line << 5) + (comment_line << 3) + code;
-  printf("blank:%d comment:%d code:%d ret:%d\n", blank_line, comment_line, code, ret);
-  return ret;
-}
