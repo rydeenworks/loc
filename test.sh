@@ -22,14 +22,14 @@ code=0
 assert $val "./sample/line_comment_top.c"
 assert $val "./sample/scope_comment_top.c"
 
-blank=0
-comment=7
+blank=4
+comment=3
 code=0
 ((val=$((blank<<5))+$((comment<<3))+$code))
 assert $val "./sample/scope_comment_7.c"
 
-blank=2
-comment=5
+blank=4
+comment=3
 code=0
 ((val=$((blank<<5))+$((comment<<3))+$code))
 assert $val "./sample/scope_comment_5.c"

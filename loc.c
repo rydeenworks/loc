@@ -104,8 +104,14 @@ void count(CommentToken *tok, int *l, int *b, int *c) {
       printf("\n%d ", ++lines);
       // 範囲コメント内の改行はコメント行として加える
       if (is_comment_scope) {
-        comment++;
-        printf("c ");
+        // 改行後にすぐ改行した場合は空行とする
+        if (!cur->next || cur->next->kind == TK_NEW_LINE) {
+          blank++;
+          printf("b ");
+        } else {
+          comment++;
+          printf("c ");
+        }
       } else {
         // 改行後にすぐ改行した場合は空行とする
         if (!cur->next || cur->next->kind == TK_NEW_LINE) {
