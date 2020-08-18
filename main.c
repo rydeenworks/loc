@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
 #include "loc.h"
 
 extern int debug_disp;
@@ -30,13 +31,6 @@ char *file_read(char *filename, size_t *size) {
   char *buf = calloc(1, *size);
   fread(buf, *size, 1, fp);
   return buf;
-}
-
-void result_print(int blank, int comment, int code) {
-  if (debug_disp) {
-    printf("blank\tcomment\tcode\n");
-  }
-  printf("%d\t%d\t%d\n", blank, comment, code);
 }
 
 int main(int argc, char* argv[])
@@ -69,12 +63,15 @@ int main(int argc, char* argv[])
   free(buf);
 
   int line = 0;
-  int blank_line = 0;
-  int comment_line = 0;
-  count(tok, &line, &blank_line, &comment_line);
-
-  int code = line - blank_line - comment_line;
-  result_print(blank_line, comment_line, code);
+  int blank = 0;
+  int comment = 0;
+  count(tok, &line, &blank, &comment);
+  int code = line - blank - comment;
+  if (debug_disp) {
+    int pos = strlen(filename);
+    printf("filenameblank,comment,code\n");
+  }
+  printf("%s,%d,%d,%d\n", filename, blank, comment, code);
 
   // 8bitで 空行 コメント行 コード行 を表現する(シェルの$?で取得するため)
   // 表現可能な行数は以下の通り
@@ -83,9 +80,9 @@ int main(int argc, char* argv[])
   // Code   : 3bit(0-7)
   // 87654321
   // bbcccCCC
-  int ret = (blank_line << 5) + (comment_line << 3) + code;
+  int ret = (blank << 5) + (comment << 3) + code;
   if (debug_disp) {
-    printf("blank:%d comment:%d code:%d ret:%d\n", blank_line, comment_line, code, ret);
+    printf("blank:%d comment:%d code:%d ret:%d\n", blank, comment, code, ret);
   }
   return ret;
 }
