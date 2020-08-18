@@ -4,7 +4,7 @@ assert() {
     expected="$1"
     input="$2"
 
-    ./loc $input
+    ./loc -d $input
     actual="$?"
 
     if [ "$actual" = "$expected" ]; then

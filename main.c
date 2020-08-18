@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "loc.h"
+
+extern int debug_disp;
 
 void error_at(char *fmt, ...) {
   va_list ap;
@@ -11,7 +14,7 @@ void error_at(char *fmt, ...) {
   exit(1);
 }
 
-char *read(char *filename, size_t *size) {
+char *file_read(char *filename, size_t *size) {
   FILE* fp = fopen(filename, "r");
   if (fp == NULL)
     error_at("fopen error");
@@ -30,16 +33,38 @@ char *read(char *filename, size_t *size) {
 }
 
 void result_print(int blank, int comment, int code) {
-  printf("blank\tcomment\tcode\n");
+  if (debug_disp) {
+    printf("blank\tcomment\tcode\n");
+  }
   printf("%d\t%d\t%d\n", blank, comment, code);
 }
 
 int main(int argc, char* argv[])
 {
-  char *filename = argv[1];
+  char ch;
+  debug_disp = 0;
+  while ((ch = getopt(argc, argv, "dh")) != -1) {
+    switch(ch) {
+    case 'd': // detail or debug
+      printf("d argc=%d optind=%d\n", argc, optind);
+      debug_disp = 1;
+      break;
+    case '?':
+    default:
+      printf("Usage: %s [-d] [file]\n", argv[0]);
+      printf("\t-d : detail print\n");
+      printf("\toutput example:\n");
+      printf("\tblank   comment code\n");
+      printf("\t6       0       1\n");
+      return 0;
+    }
+  }
+
+  // オプションの次がファイル名
+  char *filename = argv[optind];
 
   size_t size;
-  char *buf = read(filename, &size);
+  char *buf = file_read(filename, &size);
   CommentToken *tok = tokenize(buf, size);
   free(buf);
 
@@ -59,6 +84,8 @@ int main(int argc, char* argv[])
   // 87654321
   // bbcccCCC
   int ret = (blank_line << 5) + (comment_line << 3) + code;
-  printf("blank:%d comment:%d code:%d ret:%d\n", blank_line, comment_line, code, ret);
+  if (debug_disp) {
+    printf("blank:%d comment:%d code:%d ret:%d\n", blank_line, comment_line, code, ret);
+  }
   return ret;
 }

@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
 #include "loc.h"
 
 
@@ -83,6 +84,16 @@ CommentToken *tokenize(char *buf, size_t size) {
   return head.next;
 }
 
+bool debug_disp;
+void debug_print(char* fmt, ...) {
+  if (debug_disp) {
+    va_list ap;
+    va_start(ap, fmt);
+    vprintf(fmt, ap);
+    va_end(ap);
+  }
+}
+
 void count(CommentToken *tok, int *l, int *b, int *c) {
   // 空白のみの行は空行とする
   // 改行は'\n'
@@ -91,7 +102,7 @@ void count(CommentToken *tok, int *l, int *b, int *c) {
   int lines = 1;
   int blank = 0;
   int comment = 0;
-  printf("%d ", lines);
+  debug_print("%d ", lines);
   bool is_comment_scope = false;
   for(CommentToken *cur=tok; cur->next != NULL; cur = cur->next ) {
     switch(cur->kind) {
@@ -99,53 +110,53 @@ void count(CommentToken *tok, int *l, int *b, int *c) {
       // ファイル先頭で改行した場合は空行とする
       if (!cur->prev) {
         blank++;
-        printf("b ");
+        debug_print("b ");
       }
-      printf("\n%d ", ++lines);
+      debug_print("\n%d ", ++lines);
       // 範囲コメント内の改行はコメント行として加える
       if (is_comment_scope) {
         // 改行後にすぐ改行した場合は空行とする
         if (!cur->next || cur->next->kind == TK_NEW_LINE) {
           blank++;
-          printf("b ");
+          debug_print("b ");
         } else {
           comment++;
-          printf("c ");
+          debug_print("c ");
         }
       } else {
         // 改行後にすぐ改行した場合は空行とする
         if (!cur->next || cur->next->kind == TK_NEW_LINE) {
           blank++;
-          printf("b ");
+          debug_print("b ");
         }
       }
       break;
     case TK_LINE_COMMENT:  // １行コメント以降
       // 範囲コメント内の１行コメントは無視する
       if (!is_comment_scope && (!cur->prev || cur->prev->kind == TK_NEW_LINE)) {
-        printf("c ");
-        printf("//\t");
+        debug_print("c ");
+        debug_print("//\t");
         comment++;
       }
       break;
     case TK_START_COMMENT: // 範囲コメント開始
       if (!is_comment_scope && (!cur->prev || cur->prev->kind == TK_NEW_LINE)) {
-        printf("c ");
-        printf("/*\t");
+        debug_print("c ");
+        debug_print("/*\t");
         comment++;
       }
       is_comment_scope = true;
       break;
     case TK_END_COMMENT: // 範囲コメント終了
-      printf("*/\t");
+      debug_print("*/\t");
       is_comment_scope = false;
       break;
     case TK_OTHRE:         // 上記以外
-      printf("...\t");
+      debug_print("...\t");
       break;
     }
   }
-  printf("\n");
+  debug_print("\n");
 
   *l = lines;
   *b = blank;
